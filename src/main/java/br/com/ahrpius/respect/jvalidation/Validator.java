@@ -2,9 +2,12 @@ package br.com.ahrpius.respect.jvalidation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.UndeclaredThrowableException;
 
+import br.com.ahrpius.respect.jvalidation.exceptions.ValidationException;
 import br.com.ahrpius.respect.jvalidation.rules.AllOf;
 
 
@@ -23,7 +26,12 @@ public class Validator extends AllOf implements InvocationHandler{
 			throws Throwable {
 
 		if ( m.getDeclaringClass().isAssignableFrom(this.getClass()) ) {
-			return m.invoke(this, os);
+			try {
+				return m.invoke(this, os);
+			} catch (InvocationTargetException e) {
+                throw e.getTargetException();
+			}
+			
 		}
 		
 		//TODO encapsular manipulação de string
@@ -46,7 +54,8 @@ public class Validator extends AllOf implements InvocationHandler{
 		return proxy;
 	}
 
-	public static Validators build(){
+	//TODO create is a good name?
+	public static Validators create(){
 		
 		return (Validators) Proxy.newProxyInstance(
 				Validators.class.getClassLoader(),  
@@ -56,12 +65,15 @@ public class Validator extends AllOf implements InvocationHandler{
 	}
 
 	public static void main(String[] args) {
-		Validators v = Validator.build();
-		Boolean r = v.allOf( 
-				v.bool().hexa()
-			).validate("false");
 		
-		System.out.println( r );
+		try {
+			Validators v = Validator.create();
+			v.bool().assertThat(Double.MAX_VALUE);
+		} catch (ValidationException e) {
+			System.err.println( e.getMessage() );
+			e.printStackTrace();
+		}
+		
 	}
 
 }

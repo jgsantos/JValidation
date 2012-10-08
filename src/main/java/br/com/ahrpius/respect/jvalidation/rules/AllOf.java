@@ -1,5 +1,6 @@
 package br.com.ahrpius.respect.jvalidation.rules;
 
+import java.util.HashMap;
 import java.util.List;
 
 import br.com.ahrpius.respect.jvalidation.Validatable;
@@ -13,21 +14,22 @@ public class AllOf extends AbstractComposite {
 	}
 	
 	@Override
-	public Boolean assertThat(Object input) {
+	public Boolean assertThat(Object input) throws ValidationException {
 		
 		List<Exception> exceptions = this.validateRules(input);
 		int numRules = rules.size();
 		int numExceptions = exceptions.size();
 		
-		//TODO
-//        $summary = array(
-//            'total' => $numRules,
-//            'failed' => $numExceptions,
-//            'passed' => $numRules - $numExceptions
-//        );
+		HashMap<String, String> summary = new HashMap<String, String>();
+		summary.put("total", String.valueOf( numRules ));
+		summary.put("failed", String.valueOf( numExceptions ));
+		summary.put("passed", String.valueOf( numRules-numExceptions ));
         
-//        if (!exceptions.isEmpty())
-//            throw this.reportError($input, $summary)->setRelated($exceptions);
+        if (!exceptions.isEmpty()) {
+        	this.clazz = AllOf.class;
+        	ValidationException v = this.reportError(input, summary);//setRelated(exceptions); 
+            throw v;
+        }
             
         return Boolean.TRUE;
     }

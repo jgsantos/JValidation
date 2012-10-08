@@ -8,8 +8,9 @@ import br.com.ahrpius.respect.jvalidation.exceptions.ValidationException;
 
 public class AbstractRule implements Validatable {
 	
-	protected String name;
+	protected String name = "";
 	protected String template;
+	protected Class<?> clazz = this.getClass();
 	
 	public AbstractRule(){}
 
@@ -54,12 +55,15 @@ public class AbstractRule implements Validatable {
 		
 		ValidationException exception = this.createException();
         
-        String name = this.getName()==null||this.getName().length()==0 ? "": "\""+ValidationException.stringify(input)+"\"";
+        String name = getName()!=null||getName().length()>=0 ? getName(): "\""+ValidationException.stringify(input)+"\"";
+        
         Map<String, String> params = new HashMap<String, String>();
-        if (extraParams!=null)
-        	params.putAll(extraParams);
+        
+    	params.putAll(extraParams);
 //        $params = array_merge(
-//            get_class_vars(__CLASS__), get_object_vars($this), $extraParams,
+//            get_class_vars(__CLASS__), 
+//        	  get_object_vars($this), 
+//        	  $extraParams,
 //            compact('input')
 //        );
         exception.configure(name, params);
@@ -69,7 +73,8 @@ public class AbstractRule implements Validatable {
 	}
 	
 	protected ValidationException createException() {
-		String className = this.getClass().getName();
+		
+		String className = this.clazz.getName();
 		className = className.replace("rules", "exceptions");
 		className += "Exception";
 		//TODO encapsular reflection
@@ -88,5 +93,7 @@ public class AbstractRule implements Validatable {
         return null;
     }
 
+	
+	
 
 }
