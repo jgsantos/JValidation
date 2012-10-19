@@ -54,21 +54,18 @@ public class AbstractRule implements Validatable {
 	public ValidationException reportError(Object input, Map<String, String> extraParams) {
 		
 		ValidationException exception = this.createException();
-        
-        String name = getName()!=null||getName().length()>=0 ? getName(): "\""+ValidationException.stringify(input)+"\"";
+		String i = ValidationException.stringify(input);
+        String name = getName()!=null&&getName().length()>=0 ? getName() : "\""+i+"\"";
         
         Map<String, String> params = new HashMap<String, String>();
         
     	params.putAll(extraParams);
-//        $params = array_merge(
-//            get_class_vars(__CLASS__), 
-//        	  get_object_vars($this), 
-//        	  $extraParams,
-//            compact('input')
-//        );
+    	
         exception.configure(name, params);
+        
         if (this.template!=null&&this.template.length()>0)
             exception.setTemplate( (this.template) );
+        
         return exception;
 	}
 	

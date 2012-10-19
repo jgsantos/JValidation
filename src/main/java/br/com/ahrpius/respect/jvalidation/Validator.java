@@ -5,8 +5,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 
+import br.com.ahrpius.respect.jvalidation.exceptions.AbstractNestedException;
 import br.com.ahrpius.respect.jvalidation.exceptions.ValidationException;
 import br.com.ahrpius.respect.jvalidation.rules.AllOf;
 
@@ -44,8 +44,6 @@ public class Validator extends AllOf implements InvocationHandler{
 		
 		name = "br.com.ahrpius.respect.jvalidation.rules."+name.substring(0,1).toUpperCase()+name.substring(1);
 
-//		System.out.println("proxy:" + proxy.getClass().getCanonicalName());
-
 		Class<?> clazz = Class.forName(name);
 		Constructor<?> constructors = clazz.getDeclaredConstructor(m.getParameterTypes());
 		Validatable validatable = (Validatable) constructors.newInstance(os);
@@ -68,10 +66,15 @@ public class Validator extends AllOf implements InvocationHandler{
 		
 		try {
 			Validators v = Validator.create();
-			v.bool().assertThat(Double.MAX_VALUE);
+			v
+				.positive()
+				.positive()
+				.assertThat(-1);
 		} catch (ValidationException e) {
-			System.err.println( e.getMessage() );
-			e.printStackTrace();
+			if (e instanceof AbstractNestedException)
+				System.err.println( ((AbstractNestedException)e).getFullMessage() );
+			else
+				System.err.println( e.getMessage() );
 		}
 		
 	}

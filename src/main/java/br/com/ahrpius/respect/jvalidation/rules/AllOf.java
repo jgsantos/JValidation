@@ -5,6 +5,7 @@ import java.util.List;
 
 import br.com.ahrpius.respect.jvalidation.Validatable;
 import br.com.ahrpius.respect.jvalidation.Validators;
+import br.com.ahrpius.respect.jvalidation.exceptions.AbstractNestedException;
 import br.com.ahrpius.respect.jvalidation.exceptions.ValidationException;
 
 public class AllOf extends AbstractComposite {
@@ -16,7 +17,7 @@ public class AllOf extends AbstractComposite {
 	@Override
 	public Boolean assertThat(Object input) throws ValidationException {
 		
-		List<Exception> exceptions = this.validateRules(input);
+		List<ValidationException> exceptions = this.validateRules(input);
 		int numRules = rules.size();
 		int numExceptions = exceptions.size();
 		
@@ -27,8 +28,7 @@ public class AllOf extends AbstractComposite {
         
         if (!exceptions.isEmpty()) {
         	this.clazz = AllOf.class;
-        	ValidationException v = this.reportError(input, summary);//setRelated(exceptions); 
-            throw v;
+        	throw ((AbstractNestedException)reportError(input, summary)).setRelated(exceptions); 
         }
             
         return Boolean.TRUE;

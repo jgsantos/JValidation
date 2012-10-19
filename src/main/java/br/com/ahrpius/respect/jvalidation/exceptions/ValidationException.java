@@ -1,25 +1,44 @@
 package br.com.ahrpius.respect.jvalidation.exceptions;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import br.com.ahrpius.respect.jvalidation.IMode;
 
 public class ValidationException extends Exception {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private String id = "validation";
-//    protected $mode = self::MODE_DEFAULT;
+	private IMode mode = Mode.DEFAULT;
 	private String name = "";
-	private String template = "";
-    protected Map<String, String> params = new HashMap<String, String>();
-    
+	protected String template = "";
+	private Map<String, String> params = new HashMap<String, String>();
 	private String message = this.getMessage();
+    
+    enum Mode implements IMode{
+		DEFAULT("Data validation failed for %name"),
+		NEGATIVE("Data validation failed for %name");
+
+		private String text;
+		@Override public String getText() {
+			return text;
+		}
+		@Override public IMode getMode(IMode mode){
+			return mode.getMode();
+		}
+		@Override public IMode getMode(){
+			return this;
+		}
+		private Mode(String text) {
+			this.text = text;
+		}
+    }
 
 	public static String stringify(Object input) {
 		
@@ -48,18 +67,24 @@ public class ValidationException extends Exception {
 	}
 	
 	public ValidationException configure(String name, Map<String, String> params) {
-        this.name = name;
-        this.params.putAll(params);
+        this.setName(name);
+        this.setParams(params);
         this.message  = getMainMessage();
         this.id = guessId();
         return this;
     }
 	
 	public String getMainMessage() {
-        params.put("name", this.name);
-
-        //TODO
-        return "mainMessage";//String.format(template, params.values());
+		
+		Map<String, String> sumary = this.params;
+		sumary.put("name", this.name);
+		String t = this.getTemplate();
+		
+//        params.put("name", this.name);
+//        System.out.println(this.getClass());
+//        System.out.println(params);
+        return format(t, sumary);
+        //this.getTemplate() + " " + this.getClass().getSimpleName();
     }
 	
 	@Override
@@ -79,5 +104,78 @@ public class ValidationException extends Exception {
 		this.template = template;
 		return this;
 	}
+	
+	public ValidationException setMode(IMode mode) {
+        this.mode = mode;
+        this.template = this.buildTemplate();
+        return this;
+    }
+	
+	public String getTemplate() {
+        return t();
+    }
+	public String t(){
+        if (template!=null && template.length()>0)
+            return template;
+        else
+            return template = mode.getText();
+	}
+	public String buildTemplate(){
+		return chooseTemplate().getText();
+	}
+	
+    public static String format(String template, Map<String, String> params) {
+    	
+    	for (String key : params.keySet()) {
+			template = template.replaceAll("%"+key, params.get(key));
+		}
+    	
+    	return template;
+    }
 
+	public String getName() {
+		return name;
+	}
+
+	public String getId() {
+		return id;
+	}
+	
+	public ValidationException setParams(Map<String, String> params){
+		Set<String> set = params.keySet();
+		for (String s : set) {
+			this.setParam(s, params.get(s));
+		}
+		return this;
+	}
+
+	private ValidationException setParam(String key, String value) {
+		//TODO rever translator
+		this.params.put(key, stringify(value));
+		return this;
+	}
+
+	public Map<String, String> getParams() {
+		return this.params;
+	}
+	
+	public String getParam(String param){
+		return this.params.get(param);
+	}
+	
+	public IMode chooseTemplate(){
+		return this.mode;
+	}
+	public ValidationException setName(String name){
+		this.name = stringify(name);
+		return this;
+	}
+	public Boolean hasParam(String value){
+		return params.containsKey(value); 
+	}
+	public ValidationException setId(String id){
+		this.id = id;
+		return this;
+	}
+    
 }

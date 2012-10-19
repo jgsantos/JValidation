@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import br.com.ahrpius.respect.jvalidation.Validatable;
+import br.com.ahrpius.respect.jvalidation.exceptions.ValidationException;
 
 public class AbstractComposite extends AbstractRule {
 	
@@ -50,13 +51,14 @@ public class AbstractComposite extends AbstractRule {
 //TODO
     }
     
-    protected  List<Exception> validateRules(Object input) {
-        List<Validatable> validators = this.getRules();
-        List<Exception> exceptions = new ArrayList<Exception>();
-        for (Validatable v : validators) {
+    protected  List<ValidationException> validateRules(Object input) {
+    	
+        List<ValidationException> exceptions = new ArrayList<ValidationException>();
+        for (Validatable v : this.getRules()) {
+//        	System.out.println("validateRules:"+v.getClass().getSimpleName());
 			try {
-				v.assertThat(input);
-			} catch (Exception e) {
+				v.assertThat( input );
+			} catch (ValidationException e) {
 				exceptions.add(e);
 			}
 		}
